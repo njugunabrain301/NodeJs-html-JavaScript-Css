@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>I-Rest</title>
+	<meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="css/custom.css">
+    <script>
+        var db;
+        
+        document.addEventListener("deviceready", onDeviceReady, false);
+        
+        function onDeviceReady(){
+            db = window.openDatabase("Database", "1.0", "I-Rest", 10*1024*1024);
+            db.transaction(createDatabase, errorHandler, success);
+        }
+        
+        function createDatabase(tx){
+            tx.executeSql('CREATE TABLE IF NOT EXISTS IREST(name, type, price, rating, note, reporter, date)');
+        }
+        
+        function errorHandler(err){
+            alert("Could not create database");
+        }
+        
+        function success(){}
+        
+        function submitReview(){
+            db.transaction(insert, errorInserting);
+        }
+        
+        function insert(tx){
+       var restName=$("#rest-name").val();
+	   var restType=$("#rest-type").val();
+	   var serviceRating=$("#service-rating").val()*1;
+	   var avrgMealPrice=$("#avarage-meal-price").val()*1;
+	   var dateVisited=$("#visit-date").val();
+	   var cleanleness=$("#cleanliness-rating").val()*1;
+	   var foodQuality=$("#fdqlty-rating").val()*1;
+	   var note=$("#note").val();
+	   var reporter=$("#reporter").val();
+
+
+	   if (confirm("Do you want to submit:\n Restaurant Name: "+restName
+		+"\nRestaurant Type: "+restType
+		+"\nDate visited: "+dateVisited
+		+"\nAvarage meal price per person: "+avrgMealPrice
+		+"\nService Rating: "+serviceRating
+		+"\nCleanleness rating: "+cleanleness
+		+"\nFood Quality Rating: "+foodQuality
+		+"\nNote: "+note
+		+"\nYour name: "+reporter+"?")) {
+	    var rate;
+        var avrating=Math.ceil((serviceRating
+   	+cleanleness+foodQuality)/3);
+   	    if (avrating==1) {
+   		   rate="Need to improve";
+
+   	    }else if(avrating==2){
+   		   rate="Okay";
+   	    }else if (avrating==3) {
+   		   rate="Good";
+   	    }else{
+   		   rate="Excellent";
+   	    }
+
+   	    $("#record").append("<tr><td>"+restName+"</td><td>Food</td><td>$"+avrgMealPrice+"</td><td>"+rate+"</td><td>"+note+"</td><td>"+reporter+"</td><td><button class='btn btn-danger delete' did='"+restName+"'>Delete</button></td></tr>");        
+           
+        var query = "INSERT INTO IREST (name, type, price, rating, note, reporter, date) VALUES(?,?,?,?,?,?,?)";
+           tx.executeSql(sql, [restName, restType, avrgMealPrice, rate, note, reporter, dateVisited], run, errorInserting);
+
+        }
+        }
+        
+        function run(tx){
+        }
+        
+    </script>
+</head>
+<body>
+
+<script src="js/ng-cordova.min.js"></script>
+<script src="js/p5.js"></script>
+<script src="js/jquery.min.js"></script>
+<script src="js/popper.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/jquery.mobile-1.4.5.min.js"></script>
+<div class="container">
+    
+    <div data-role="page" id="page1">
+        <div class="jumbotron">
+            <menu>
+                <button onclick="location.href='Index.html#page1'">Home Page</button>    
+                <button onclick="location.href='Index.html#page2'">Review</button>    
+                <button onclick="location.href='Index.html#page3'">Ratings</button>    
+            </menu>
+            <h1>Welcome to I-Rest</h1>
+        </div>
+    </div>
+
+    <div data-role="page" id="page2">
+	<div class="mx-auto">
+		<center><h1>I-Rest</h1></center>
+		<div class="jumbotron">
+            <menu>
+                <button onclick="location.href='Index.html#page1'">Home Page</button>    
+                <button onclick="location.href='Index.html#page2'">Review</button>    
+                <button onclick="location.href='Index.html#page3'">Ratings</button>    
+            </menu>
+			<h3>Please fill in the form below.</h3>
+			<form onsubmit="return submitReview()" method="post" id="ratingForm">
+			  <div class="form-group">
+			    <label>Restaurant Name<span class="required">*</span></label>
+			    <input type="text" class="form-control" id="rest-name"placeholder="Restaurant Name " required>
+			    <small id="rest-name-check" class="form-text text-muted hide text-danger"></small>
+			  </div>
+
+			   <div class="form-group">
+			    <label>Restaurant Type<span class="required">*</span></label>
+			    <input type="text" class="form-control" id="rest-type"placeholder="Restaurant Type "required>
+			    <small id="rest-type-check" class="form-text text-muted hide text-danger"></small>
+			  </div>
+
+
+			  <div class="form-group">
+			    <label>Date of visit<span class="required">*</span></label>
+			    <input type="date" class="form-control" id="visit-date" name="visit-date" required>
+			    <small id="visit-date-check" class="form-text text-muted hide text-danger"></small>
+			  </div>
+
+			    <div class="form-group">
+			    <label>Avarage meal price per person<span class="required">*</span></label>
+			    <input type="number" class="form-control" id="avarage-meal-price" name="visit-date" min="0" required>
+			    <small id="Avarage-meal-price-check" class="form-text text-muted hide text-danger"></small>
+			  </div>
+
+
+			  	 <div class="form-group">
+			    <label>Service Rating <span class="required">*</span></label>
+			    <select class="form-control" name="service-rating" id="service-rating" required>
+			    	<option value="">Select rating</option>
+			    	<option value="1">Need to improve</option>
+			    	<option value="2">OKAY</option>
+			    	<option value="3">Good</option>
+			    	<option value="4">Excellent</option>
+			    	
+			    </select>
+			    <small id="service-rating-check" class="form-text text-muted hide text-danger"></small>
+			  </div>
+
+
+
+			   <div class="form-group">
+			    <label>Cleanliness Rating <span class="required">*</span></label>
+			    <select class="form-control" name="cleanliness-rating" id="cleanliness-rating" required>
+			    	<option value="">Select rating</option>
+			    	<option value="1">Need to improve</option>
+			    	<option value="2">OKAY</option>
+			    	<option value="3">Good</option>
+			    	<option value="4">Excellent</option>
+			    	
+			    </select>
+			    <small id="cleanliness-rating-check" class="form-text text-muted hide text-danger"></small>
+			  </div>
+
+
+
+			  	 <div class="form-group">
+			    <label>Food Quality Rating <span class="required">*</span></label>
+			    <select class="form-control" name="fdqlty-rating" id="fdqlty-rating" required>
+			    	<option value="">Select rating</option>
+			    	<option value="1">Need to improve</option>
+			    	<option value="2">OKAY</option>
+			    	<option value="3">Good</option>
+			    	<option value="4">Excellent</option>
+			    </select>
+			    <small id="fdqlty-rating-check" class="form-text text-muted hide text-danger"></small>
+			  </div>
+
+
+			  <div class="form-group">
+			  	<label>Note:</label>
+			  	<textarea class="form-control" placeholder="Any additional note" id="note">
+
+			  	
+			  	</textarea>
+
+
+			   <div class="form-group">
+			    <label>Name of reporter<span class="required">*</span></label>
+			    <input type="text" class="form-control" id="reporter" name="reporter" placeholder="Enter your name" required>
+			    <small id="reporter-check" class="form-text text-muted hide text-danger"></small>
+			  </div>
+			  	
+			  </div>
+			  <button class="btn btn-primary" id="btnsubmit">Submit Report</button>
+			</form>
+        </div>
+			
+		</div>
+		
+	</div>
+    <div data-role="page" id="page3">
+	<div class="jumbotron mx-auto">
+        <menu>
+                <button onclick="location.href='Index.html#page1'">Home Page</button>    
+                <button onclick="location.href='Index.html#page2'">Review</button>    
+                <button onclick="location.href='Index.html#page3'">Ratings</button>    
+            </menu>
+		<h3>
+			Restaurant Ratings
+		</h3>
+		<form>
+			<input type="text" id="search" class="form-control" placeholder="Search">
+
+		</form>
+		<table class="fit" id="record">
+			<tr>
+				<th>Name</th>
+				<th>Type</th>
+				<th>Avarage meal price per person</th>
+				<th>Rating</th>
+				<th>Note</th>
+				<th>Reported by</th>
+				<th>Manage</th>
+			</tr>
+
+			
+		</table>
+	</div>
+    </div>
+</div>
+<script>
+    
+    function getData(){
+        var reader = new FileReader();
+        reader.onload = function(){
+          var text = reader.result;
+          alert(text);
+          node.innerText = text;
+          console.log(reader.result.substring(0, 200));
+        };
+        reader.readAsText('index.json');
+        
+    } 
+
+$(document).ready(function() {
+    
+var records = new Array();
+var submit=false;
+
+	$("#btnsubmit").click(function(event){
+         event.preventDefault();
+         if ($("#rest-name").val()=="") {
+         	$("#rest-name").addClass("border-danger");
+         	$("#rest-name-check").text("Please enter Restaurant name");
+         	$("#rest-name-check").show();
+         	submit=false;
+         }else{
+         	$("#rest-name").removeClass("border-danger");
+         	$("#rest-name-check").text("");
+         	$("#rest-name-check").hide();
+         	submit=true;
+         }
+
+      	if ($("#rest-type").val()=="") {
+      		$("#rest-type").addClass("border-danger");
+      		$("#rest-type-check").text("Please enter Restaurant type");
+      		$("#rest-type-check").fadeIn(300);
+      		submit=false;
+      	}else{
+      		$ ("#rest-type").removeClass("border-danger");
+      		$("#rest-type-check").text("");
+      		$("#rest-type-check").fadeOut(300);
+      		submit=true;
+      	}
+
+      	if($("#service-rating").val()==""){
+      		$("#service-rating").addClass("border-danger");
+      		$("#service-rating-check").text("Please select service rating");
+      		$("#service-rating-check").fadeIn(300);
+      		submit=false;
+      	}	else{
+      		$("#service-rating").removeClass("border-danger");
+      		$("#service-rating-check").text("");
+      		$("#service-rating-check").fadeOut(300);
+      		submit=true;
+
+      	}
+
+      	if ($("#avarage-meal-price").val()=="") {
+      		$("#avarage-meal-price").addClass("border-danger");
+      		$("#avarage-meal-price-check").text("Please enter average meal price");
+
+      		$("#avarage-meal-price-check").fadeIn(300);
+      		submit=false;
+      	}else{
+      		$("#avarage-meal-price").removeClass("border-danger");
+      		$("#avarage-meal-price-check").text("");
+
+      		$("#avarage-meal-price-check").fadeOut(300);
+      		submit=true;
+      	}
+      	if ($("#visit-date").val()=="") {
+      		$("#visit-date").addClass("border-danger");
+      		$("#visit-date-check").text("Please enter the visit date");
+      		$("#visit-date-check").fadeIn(300);
+      		submit=false;	
+      	}else{
+
+      		$("#visit-date").removeClass("border-danger");
+      		$("#visit-date-check").text("");
+      		$("#visit-date-check").fadeOut(300);
+      		submit=true;
+      	}
+      	if ($("#cleanliness-rating").val()=="") {
+      		$("#cleanliness-rating").addClass("border-danger");
+      		$("#cleanliness-rating-check").text("Please select cleanlenes rating");
+      		$("#cleanliness-rating-check").fadeIn(300);
+      		submit=false;
+
+      	}else{
+      		$("#cleanliness-rating").removeClass("border-danger");
+      		$("#cleanliness-rating-check").text("");
+      		$("#cleanliness-rating-check").fadeOut(300);
+      		submit=true;
+
+      	}
+      	if ($("#fdqlty-rating").val()=="") {
+      		$("#fdqlty-rating").addClass("border-danger");
+      		$("#fdqlty-rating-check").text("Please select food Quality rating");
+      		$("#fdqlty-rating-check").fadeIn(300);
+      		submit=false
+      	}else{
+      		$("#fdqlty-rating").removeClass("border-danger");
+      		$("#fdqlty-rating-check").text("");
+      		$("#fdqlty-rating-check").fadeOut(300);
+      		submit=true
+      	}
+      	if ($("#reporter").val()=="") {
+      	$("#reporter").addClass("border-danger");
+      	$("#reporter-check").text("Please enter your name");
+      	$("#reporter-check").fadeIn(300);
+      	submit=false;
+      	}else{
+      	$("#reporter").removeClass("border-danger");
+      	$("#reporter-check").text("");
+      	$("#reporter-check").fadeOut(300);
+      	
+      	}
+
+    if(submit){
+    var restName=$("#rest-name").val();
+	var restType=$("#rest-type").val();
+	var serviceRating=$("#service-rating").val()*1;
+	var avrgMealPrice=$("#avarage-meal-price").val()*1;
+	var dateVisited=$("#visit-date").val();
+	var cleanleness=$("#cleanliness-rating").val()*1;
+	var foodQuality=$("#fdqlty-rating").val()*1;
+	var note=$("#note").val();
+	var reporter=$("#reporter").val();
+
+	if (confirm("Do you want to submit:\n Restaurant Name: "+restName
+		+"\nRestaurant Type: "+restType
+		+"\nDate visited: "+dateVisited
+		+"\nAvarage meal price per person: "+avrgMealPrice
+		+"\nService Rating: "+serviceRating
+		+"\nCleanleness rating: "+cleanleness
+		+"\nFood Quality Rating: "+foodQuality
+		+"\nNote: "+note
+		+"\nYour name: "+reporter+"?")) {
+	var rate;
+   var avrating=Math.ceil((serviceRating
+   	+cleanleness+foodQuality)/3);
+   	if (avrating==1) {
+   		rate="Need to improve";
+
+   	}else if(avrating==2){
+   		rate="Okay";
+   	}else if (avrating==3) {
+   		rate="Good";
+   	}else{
+   		rate="Excellent";
+   	}
+
+        var oneRecord = new Array(restName, "<tr id='"+restName+"'><td>"+restName+"</td><td>Food</td><td>$"+avrgMealPrice+"</td><td>"+rate+"</td><td>"+note+"</td><td>"+reporter+"</td><td><button class='btn btn-danger delete' did='"+restName+"'>Delete</button></td></tr>");
+        
+        records[records.length] = oneRecord;
+        display();
+	}else{
+		window.location.href='Index.html#ratingForm';
+	}
+
+      	}
+
+     });
+
+			$("body").delegate(".delete", "click", function(){
+				var did=$(this).attr("did");
+                for(var i = 0; i < records.length; i++){
+                var record = records[i];
+                    if(did === record[0])
+                        records.splice(i, 1);
+                }
+                display();
+			});
+    function display(){
+        var table = document.getElementById("record");
+        table.innerHTML = "";
+        for(var i = 0; i < records.length; i++){
+            var record = records[i];
+            table.innerHTML+=record[1];
+        }
+    }
+    
+    function search(){
+        var name = document.getElementById('search').value;
+        var table = document.getElementById("record");
+        table.innerHTML = "";
+        for(var i = 0; i < records.length; i++){
+            var record = records[i];
+            if(record[0].includes(name))
+            table.innerHTML+=record[1];
+        }
+    }
+    
+    
+    $("#search").keyup(function(e){
+       search();
+    });
+        
+    $("#search").keydown(function(e){
+        search();
+    });
+   
+});
+</script>
+
+
+</body>
+</html>
